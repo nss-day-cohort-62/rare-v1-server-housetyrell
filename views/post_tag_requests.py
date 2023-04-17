@@ -14,7 +14,7 @@ def get_all_post_tags():
             a.id,
             a.post_id,
             a.tag_id
-        FROM post_tag a
+        FROM posttags a
         """)
 
         post_tags = []
