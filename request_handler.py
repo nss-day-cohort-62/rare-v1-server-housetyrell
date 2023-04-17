@@ -1,7 +1,7 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 
-from views.user import create_user, login_user
+from views.user_requests import create_user, login_user
 
 
 class HandleRequests(BaseHTTPRequestHandler):

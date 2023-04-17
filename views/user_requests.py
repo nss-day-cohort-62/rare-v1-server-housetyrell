@@ -1,6 +1,7 @@
 import sqlite3
 import json
 from datetime import datetime
+from models import User
 
 def login_user(user):
     """Checks for the user in the database
@@ -69,3 +70,44 @@ def create_user(user):
             'token': id,
             'valid': True
         })
+def get_all_users():
+    with sqlite3.connect("./db.sqlite3") as conn:
+
+        conn.row_factory = sqlite3.Row
+        db_cursor = conn.cursor()
+
+        # Write the SQL query to get the information you want
+        db_cursor.execute("""
+        SELECT
+            u.id,
+            u.first_name,
+            u.last_name,
+            u.email,
+            u.bio,
+            u.username,
+            u.password,
+            u.profile_image_url,
+            u.created_on,
+            u.active
+            FROM Users u
+        """)
+
+        # Initialize an empty list to hold all animal representations
+        users = []
+
+        # Convert rows of data into a Python list
+        dataset = db_cursor.fetchall()
+
+        # Iterate list of data returned from database
+        for row in dataset:
+
+            # Create an animal instance from the current row.
+            # Note that the database fields are specified in
+            # exact order of the parameters defined in the
+            # Animal class above.
+            user = User(row['id'], row['first_name'], row['last_name'], row['email'], 
+                        row['bio'], row['username'], row['password'], 
+                        row['profile_image_url'], row['created_on'], row['active'])
+            users.append(user.__dict__)
+
+    return users
