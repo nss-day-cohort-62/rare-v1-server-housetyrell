@@ -12,8 +12,8 @@ def get_all_reactions():
         db_cursor.execute("""
         SELECT
             a.id,
-            a.emoji
-        FROM reaction a
+            a.image_url
+        FROM reactions a
         """)
 
         reactions = []
@@ -22,7 +22,7 @@ def get_all_reactions():
 
         for row in dataset:
 
-            reaction = Reaction(row['id'], row['emoji'])
+            reaction = Reaction(row['id'], row['image_url'])
 
             reactions.append(reaction.__dict__)
 

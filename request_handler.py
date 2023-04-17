@@ -1,5 +1,6 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
+from views import get_all_categories, get_all_comments, get_all_post_reactions, get_all_posts, get_single_posts, get_all_reactions, get_all_subscriptions, get_all_tags, login_user, create_user, get_all_users, get_all_post_tags, create_post, update_post
 
 
 class HandleRequests(BaseHTTPRequestHandler):
@@ -58,7 +59,22 @@ class HandleRequests(BaseHTTPRequestHandler):
                     response = get_single_posts(id)
                 else:
                     response = get_all_posts()
-
+            if resource == "categories":
+                response = get_all_categories()
+            if resource == "comments":
+                response = get_all_comments()
+            if resource == "post_reactions":
+                response = get_all_post_reactions()
+            if resource == "post_tags":
+                response = get_all_post_tags()
+            if resource == "users":
+                response = get_all_users()
+            if resource == "subscriptions":
+                response = get_all_subscriptions()
+            if resource == "reactions":
+                response = get_all_reactions()
+            if resource == "tags":
+                response = get_all_tags()
 
         self.wfile.write(json.dumps(response).encode())
 
@@ -70,7 +86,7 @@ class HandleRequests(BaseHTTPRequestHandler):
         content_len = int(self.headers.get('content-length', 0))
         post_body = json.loads(self.rfile.read(content_len))
         response = ''
-        resource, id = self.parse_url()
+        resource, _  = self.parse_url()
 
         if resource == 'login':
             response = login_user(post_body)

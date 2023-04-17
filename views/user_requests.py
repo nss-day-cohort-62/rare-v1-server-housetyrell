@@ -36,7 +36,7 @@ def login_user(user):
                 'valid': False
             }
 
-        return json.dumps(response)
+        return response
 
 
 def create_user(user):
@@ -71,12 +71,12 @@ def create_user(user):
             'valid': True
         })
 def get_all_users():
+    """get all users function"""
     with sqlite3.connect("./db.sqlite3") as conn:
 
         conn.row_factory = sqlite3.Row
         db_cursor = conn.cursor()
 
-        # Write the SQL query to get the information you want
         db_cursor.execute("""
         SELECT
             u.id,
@@ -92,19 +92,9 @@ def get_all_users():
             FROM Users u
         """)
 
-        # Initialize an empty list to hold all animal representations
         users = []
-
-        # Convert rows of data into a Python list
         dataset = db_cursor.fetchall()
-
-        # Iterate list of data returned from database
         for row in dataset:
-
-            # Create an animal instance from the current row.
-            # Note that the database fields are specified in
-            # exact order of the parameters defined in the
-            # Animal class above.
             user = User(row['id'], row['first_name'], row['last_name'], row['email'], 
                         row['bio'], row['username'], row['password'], 
                         row['profile_image_url'], row['created_on'], row['active'])

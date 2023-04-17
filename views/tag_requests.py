@@ -9,6 +9,7 @@ def get_all_tags():
         db_cursor.execute("""
         SELECT t.id, t.label
         FROM Tags t
+        ORDER BY label ASC;
         """)
         tags = []
         dataset = db_cursor.fetchall()
