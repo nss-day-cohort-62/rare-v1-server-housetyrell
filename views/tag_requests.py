@@ -17,3 +17,18 @@ def get_all_tags():
             tag = Tag(row['id'], row['label'])
             tags.append(tag.__dict__)
     return tags
+
+def create_tag(new_tag):
+    """sql create tag function"""
+    with sqlite3.connect("./db.sqlite3") as conn:
+        conn.row_factory = sqlite3.Row
+        db_cursor = conn.cursor()
+        db_cursor.execute("""
+        INSERT INTO TAGS
+            (label)
+        VALUES
+            (?);
+        """, (new_tag['label'], ))
+        id = db_cursor.lastrowid
+        new_tag['id'] = id
+        return new_tag
