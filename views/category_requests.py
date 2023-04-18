@@ -31,7 +31,7 @@ def create_category(new_category):
         INSERT INTO Categories
             ( label )
         VALUES
-            ( ?, );
+            ( ? );
         """, (new_category['label'],))
 
         id = db_cursor.lastrowid
