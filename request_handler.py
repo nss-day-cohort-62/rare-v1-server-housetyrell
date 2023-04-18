@@ -1,6 +1,6 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
-from views import get_all_categories, create_category, get_all_comments, get_all_post_reactions, get_all_posts, get_single_posts, get_all_reactions, get_all_subscriptions, get_all_tags, login_user, create_user, get_all_users, get_all_post_tags, create_post, update_post, delete_post
+from views import get_all_categories, create_category, get_all_comments, get_all_post_reactions, get_all_posts, get_single_posts, get_all_reactions, get_all_subscriptions, get_all_tags, login_user, create_user, get_all_users, get_all_post_tags, create_post, update_post, delete_post, create_tag
 
 
 class HandleRequests(BaseHTTPRequestHandler):
@@ -96,6 +96,8 @@ class HandleRequests(BaseHTTPRequestHandler):
             response = create_post(post_body)
         if resource == 'categories':
             response = create_category(post_body)
+        if resource == 'tags':
+            response = create_tag(post_body)
 
         self.wfile.write(json.dumps(response).encode())
 

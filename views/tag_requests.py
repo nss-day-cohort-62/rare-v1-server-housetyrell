@@ -25,10 +25,10 @@ def create_tag(new_tag):
         db_cursor = conn.cursor()
         db_cursor.execute("""
         INSERT INTO TAGS
-            (tag_label)
+            (label)
         VALUES
             (?);
-        """, (new_tag['tag_label'], ))
+        """, (new_tag['label'], ))
         id = db_cursor.lastrowid
         new_tag['id'] = id
         return new_tag
