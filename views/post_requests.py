@@ -3,12 +3,20 @@ import sqlite3
 from models import Post, Category, User
 
 
-def get_all_posts():
+def get_all_posts(query_params):
     with sqlite3.connect('./db.sqlite3') as conn:
         conn.row_factory = sqlite3.Row
         db_cursor = conn.cursor()
-
-    db_cursor.execute("""
+        where_clause = ""
+        print(query_params)
+        if len(query_params) != 0:
+            param = query_params[0]
+            [qs_key, qs_value] = param.split("=")
+            if qs_key == "category_id":
+                where_clause = f"WHERE p.category_id = {qs_value}"
+            if qs_key == "user_id":
+                where_clause = f"WHERE p.user_id = {qs_value}"
+    sql_to_execute = f"""
         SELECT
             p.id,
             p.user_id,
@@ -31,8 +39,10 @@ def get_all_posts():
         FROM Posts p
         JOIN Users u ON u.id = p.user_id
         JOIN Categories c ON c.id = p.category_id
-        ORDER BY p.publication_date ASC;
-        """)
+        {where_clause}
+        ORDER BY p.publication_date ASC
+        """
+    db_cursor.execute(sql_to_execute)
     posts = []
     dataset = db_cursor.fetchall()
     for row in dataset:
