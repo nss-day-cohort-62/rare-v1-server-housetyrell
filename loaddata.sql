@@ -90,3 +90,37 @@ INSERT INTO Tags ('label') VALUES ('JavaScript');
 INSERT INTO Reactions ('label', 'image_url') VALUES ('happy', 'https://pngtree.com/so/happy');
 
 
+SELECT DISTINCT
+            p.id,
+            p.user_id,
+            p.category_id,
+            p.title,
+            p.publication_date,
+            p.content,
+            p.approved,
+            p.image_url,
+            u.first_name user_first_name,
+            u.last_name user_last_name,
+            u.email user_email,
+            u.bio user_bio,
+            u.username user_username,
+            u.password user_password,
+            u.profile_image_url user_profile_image_url,
+            u.created_on user_created_on,
+            u.active user_active,
+            c.label category_label,
+            (
+            SELECT GROUP_CONCAT(t.id)
+            FROM PostTags pt JOIN Tags t ON pt.tag_id = t.id
+            WHERE pt.post_id = p.id
+            ) as post_tags
+        FROM Posts p
+        JOIN Users u ON u.id = p.user_id
+        JOIN Categories c ON c.id = p.category_id
+        LEFT OUTER JOIN PostTags pt ON pt.post_id = p.id
+        LEFT OUTER JOIN Tags t ON pt.tag_id = t.id
+        ORDER BY p.publication_date ASC;
+
+
+INSERT INTO `PostTags` VALUES(null, 1, 1);
+

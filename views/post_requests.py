@@ -17,7 +17,7 @@ def get_all_posts(query_params):
             if qs_key == "user_id":
                 where_clause = f"WHERE p.user_id = {qs_value}"
     sql_to_execute = f"""
-        SELECT
+        SELECT DISTINCT
             p.id,
             p.user_id,
             p.category_id,
@@ -36,9 +36,16 @@ def get_all_posts(query_params):
             u.created_on user_created_on,
             u.active user_active,
             c.label category_label
+            (
+            SELECT GROUP_CONCAT(t.label)
+            FROM PostTags pt JOIN Tags t ON pt.tag_id = t.id
+            WHERE pt.post_id = p.id
+            ) as post_tags
         FROM Posts p
         JOIN Users u ON u.id = p.user_id
         JOIN Categories c ON c.id = p.category_id
+        LEFT OUTER JOIN PostTags pt ON pt.post_id = p.id
+        LEFT OUTER JOIN Tags t ON pt.tag_id = t.id
         {where_clause}
         ORDER BY p.publication_date ASC
         """

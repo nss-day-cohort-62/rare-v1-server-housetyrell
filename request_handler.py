@@ -1,7 +1,7 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse, parse_qs
 import json
-from views import get_all_categories, create_category, get_all_comments, get_all_post_reactions, get_all_posts, get_single_posts, get_all_reactions, get_all_subscriptions, get_all_tags, login_user, create_user, get_all_users, get_all_post_tags, create_post, update_post, delete_post, create_tag
+from views import get_all_categories, create_category, get_all_comments, get_all_post_reactions, get_all_posts, get_single_posts, get_all_reactions, get_all_subscriptions, create_subscription, get_all_tags, login_user, create_user, get_all_users, get_single_user, get_all_post_tags, create_post, update_post, delete_post, create_tag, create_post_tag, create_subscription
 
 
 class HandleRequests(BaseHTTPRequestHandler):
@@ -71,9 +71,12 @@ class HandleRequests(BaseHTTPRequestHandler):
         if resource == "post_tags":
             response = get_all_post_tags()
         if resource == "users":
-            response = get_all_users()
+            if id is not None:
+                response = get_single_user(id)
+            else:
+                response = get_all_users()
         if resource == "subscriptions":
-            response = get_all_subscriptions()
+            response = get_all_subscriptions(query_params)
         if resource == "reactions":
             response = get_all_reactions()
         if resource == "tags":
@@ -87,9 +90,11 @@ class HandleRequests(BaseHTTPRequestHandler):
         """Make a post request to the server"""
         self._set_headers(201)
         content_len = int(self.headers.get('content-length', 0))
-        post_body = json.loads(self.rfile.read(content_len))
-        response = ''
-        resource, _  = self.parse_url()
+        post_body = self.rfile.read(content_len)
+        # Convert JSON string to a Python dictionary
+        post_body = json.loads(post_body)
+        # Parse the URL
+        (resource, id, query_params) = self.parse_url(self.path)
 
         if resource == 'login':
             response = login_user(post_body)
@@ -101,6 +106,10 @@ class HandleRequests(BaseHTTPRequestHandler):
             response = create_category(post_body)
         if resource == 'tags':
             response = create_tag(post_body)
+        if resource == 'posttags':
+            response = create_post_tag(post_body)
+        if resource == 'subscriptions':
+            response = create_subscription(post_body)
 
         self.wfile.write(json.dumps(response).encode())
 
@@ -110,7 +119,7 @@ class HandleRequests(BaseHTTPRequestHandler):
         content_len = int(self.headers.get('content-length', 0))
         post_body = self.rfile.read(content_len)
         post_body = json.loads(post_body)
-        resource, id = self.parse_url()
+        resource, id = self.parse_url(self.path)
         success = False
         if resource == "posts":
             update_post(id, post_body)
@@ -123,7 +132,7 @@ class HandleRequests(BaseHTTPRequestHandler):
     def do_DELETE(self):
         """Handle DELETE Requests"""
         self._set_headers(204)
-        resource, id = self.parse_url()
+        resource, id = self.parse_url(self.path)
 
         if resource == "posts":
             delete_post(id)
