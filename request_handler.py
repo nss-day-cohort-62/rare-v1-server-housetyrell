@@ -1,4 +1,5 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from urllib.parse import urlparse, parse_qs
 import json
 from views import get_all_categories, create_category, get_all_comments, get_all_post_reactions, get_all_posts, get_single_posts, get_all_reactions, get_all_subscriptions, get_all_tags, login_user, create_user, get_all_users, get_all_post_tags, create_post, update_post, delete_post, create_tag
 
@@ -6,24 +7,25 @@ from views import get_all_categories, create_category, get_all_comments, get_all
 class HandleRequests(BaseHTTPRequestHandler):
     """Handles the requests to this server"""
 
-    def parse_url(self):
+    def parse_url(self, path):
         """Parse the url into the resource and id"""
-        path_params = self.path.split('/')
-        resource = path_params[1]
-        if '?' in resource:
-            param = resource.split('?')[1]
-            resource = resource.split('?')[0]
-            pair = param.split('=')
-            key = pair[0]
-            value = pair[1]
-            return (resource, key, value)
-        else:
-            id = None
-            try:
-                id = int(path_params[2])
-            except (IndexError, ValueError):
-                pass
-            return (resource, id)
+        url_components = urlparse(path)
+        path_params = url_components.path.strip("/").split("/")
+        query_params = []
+
+        if url_components.query != '':
+            query_params = url_components.query.split("&")
+
+        resource = path_params[0]
+        id = None
+        try:
+            id = int(path_params[1])
+        except IndexError:
+            pass 
+        except ValueError:
+            pass 
+
+        return (resource, id, query_params)
 
     def _set_headers(self, status):
         """Sets the status code, Content-Type and Access-Control-Allow-Origin
@@ -51,30 +53,31 @@ class HandleRequests(BaseHTTPRequestHandler):
     def do_GET(self):
         """Handle Get requests to the server"""
         response = None
-        resource, id = self.parse_url()
-        if '?'  not in self.path:
-            self._set_headers(200)
-            if resource == "posts":
-                if id is not None:
-                    response = get_single_posts(id)
-                else:
-                    response = get_all_posts()
-            if resource == "categories":
-                response = get_all_categories()
-            if resource == "comments":
-                response = get_all_comments()
-            if resource == "post_reactions":
-                response = get_all_post_reactions()
-            if resource == "post_tags":
-                response = get_all_post_tags()
-            if resource == "users":
-                response = get_all_users()
-            if resource == "subscriptions":
-                response = get_all_subscriptions()
-            if resource == "reactions":
-                response = get_all_reactions()
-            if resource == "tags":
-                response = get_all_tags()
+        parsed = self.parse_url(self.path)
+        ( resource, id, query_params ) = parsed
+        # if '?'  not in self.path:
+        self._set_headers(200)
+        if resource == "posts":
+            if id is not None:
+                response = get_single_posts(id)
+            else:
+                response = get_all_posts(query_params)
+        if resource == "categories":
+            response = get_all_categories()
+        if resource == "comments":
+            response = get_all_comments()
+        if resource == "post_reactions":
+            response = get_all_post_reactions()
+        if resource == "post_tags":
+            response = get_all_post_tags()
+        if resource == "users":
+            response = get_all_users()
+        if resource == "subscriptions":
+            response = get_all_subscriptions()
+        if resource == "reactions":
+            response = get_all_reactions()
+        if resource == "tags":
+            response = get_all_tags()
 
         self.wfile.write(json.dumps(response).encode())
 
