@@ -1,29 +1,29 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse, parse_qs
 import json
-from views import get_all_categories, create_category, get_all_comments, get_all_post_reactions, get_all_posts, get_single_posts, get_all_reactions, get_all_subscriptions, create_subscription, get_all_tags, login_user, create_user, get_all_users, get_single_user, get_all_post_tags, create_post, update_post, delete_post, create_tag, create_post_tag, create_subscription
-
+from views import get_all_categories, create_category, get_all_comments, get_all_post_reactions, get_all_posts, get_single_posts, get_all_reactions, get_all_subscriptions, create_subscription, get_all_tags, login_user, create_user, get_all_users, get_single_user, get_all_post_tags, get_post_by_search
+from views import get_single_comment, get_single_tag, create_post, update_post, delete_post, create_tag, create_post_tag, create_subscription
 
 class HandleRequests(BaseHTTPRequestHandler):
     """Handles the requests to this server"""
 
     def parse_url(self, path):
-        """Parse the url into the resource and id"""
         url_components = urlparse(path)
         path_params = url_components.path.strip("/").split("/")
         query_params = []
 
         if url_components.query != '':
-            query_params = url_components.query.split("&")
+            query_params = parse_qs(url_components.query)
 
         resource = path_params[0]
         id = None
+
         try:
             id = int(path_params[1])
         except IndexError:
-            pass 
+            pass  # No route parameter exists: /animals
         except ValueError:
-            pass 
+            pass  # Request had trailing slash: /animals/
 
         return (resource, id, query_params)
 
@@ -52,36 +52,51 @@ class HandleRequests(BaseHTTPRequestHandler):
 
     def do_GET(self):
         """Handle Get requests to the server"""
+        self._set_headers(200)
         response = None
         parsed = self.parse_url(self.path)
-        ( resource, id, query_params ) = parsed
-        # if '?'  not in self.path:
-        self._set_headers(200)
-        if resource == "posts":
-            if id is not None:
-                response = get_single_posts(id)
-            else:
-                response = get_all_posts(query_params)
-        if resource == "categories":
-            response = get_all_categories()
-        if resource == "comments":
-            response = get_all_comments()
-        if resource == "post_reactions":
-            response = get_all_post_reactions()
-        if resource == "post_tags":
-            response = get_all_post_tags()
-        if resource == "users":
-            if id is not None:
-                response = get_single_user(id)
-            else:
-                response = get_all_users()
-        if resource == "subscriptions":
-            response = get_all_subscriptions(query_params)
-        if resource == "reactions":
-            response = get_all_reactions()
-        if resource == "tags":
-            response = get_all_tags()
-
+        print(parsed)
+        if '?' not in self.path:
+            ( resource, id, query_params ) = parsed
+            if resource == "posts":
+                if id is not None:
+                    response = get_single_posts(id)
+                else: 
+                    response = get_all_posts(query_params)
+            if resource == "categories":
+                response = get_all_categories()
+            if resource == "comments":
+                if id is not None:
+                    response = get_single_comment(id)
+                else:
+                    response = get_all_comments()
+            if resource == "post_reactions":
+                response = get_all_post_reactions()
+            if resource == "post_tags":
+                response = get_all_post_tags()
+            if resource == "users":
+                if id is not None:
+                    response = get_single_user(id)
+                else:
+                    response = get_all_users()
+            if resource == "subscriptions":
+                response = get_all_subscriptions(query_params)
+            if resource == "reactions":
+                response = get_all_reactions()
+            if resource == "tags":
+                if id is not None:
+                    response = get_single_tag(id)
+                else:
+                    response = get_all_tags()
+        else:
+            ( resource, id, query_params ) = parsed
+            if resource == "posts":
+                if query_params.get('search'):
+                    response = get_post_by_search(query_params['search'][0])
+                else: 
+                    response = get_all_posts(query_params)
+            if resource == "subscriptions":
+                response = get_all_subscriptions(query_params)
         self.wfile.write(json.dumps(response).encode())
 
 
