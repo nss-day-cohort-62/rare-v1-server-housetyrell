@@ -70,6 +70,7 @@ def create_user(user):
             'valid': True
         }
         return response
+
 def get_all_users():
     """get all users function"""
     with sqlite3.connect("./db.sqlite3") as conn:
