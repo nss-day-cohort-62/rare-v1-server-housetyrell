@@ -8,10 +8,8 @@ def get_all_subscriptions(query_params):
         db_cursor = conn.cursor()
         where_clause = ""
         if len(query_params) != 0:
-            param = query_params[0]
-            [qs_key, qs_value] = param.split("=")
-            if qs_key == "follower_id":
-                where_clause = f"WHERE s.follower_id = {qs_value}"
+            if query_params.get("follower_id"):
+                where_clause = f"WHERE s.follower_id = {query_params['follower_id'][0]}"
             
         sql_to_execute = f"""
         SELECT
@@ -46,3 +44,12 @@ def create_subscription(new_subscription):
         id = db_cursor.lastrowid
         new_subscription['id'] = id
         return new_subscription
+def delete_subscription(id):
+    """Method docstring."""
+    with sqlite3.connect("./db.sqlite3") as conn:
+        db_cursor = conn.cursor()
+
+        db_cursor.execute("""
+        DELETE FROM Subscriptions
+        WHERE id = ?
+        """, (id, ))
