@@ -2,7 +2,8 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse, parse_qs
 import json
 from views import get_all_categories, create_category, get_all_comments, get_all_post_reactions, get_all_posts, get_single_posts, get_all_reactions, get_all_subscriptions, create_subscription, get_all_tags, login_user, create_user, get_all_users, get_single_user, get_all_post_tags, get_post_by_search
-from views import get_single_comment, get_single_tag, create_post, update_post, delete_post, create_tag, create_post_tag, create_subscription
+from views import get_single_comment, create_comment, get_single_tag, create_post, update_post, delete_post, create_tag, create_post_tag, create_subscription, delete_comment, delete_subscription
+
 
 class HandleRequests(BaseHTTPRequestHandler):
     """Handles the requests to this server"""
@@ -14,7 +15,6 @@ class HandleRequests(BaseHTTPRequestHandler):
 
         if url_components.query != '':
             query_params = parse_qs(url_components.query)
-
         resource = path_params[0]
         id = None
 
@@ -55,13 +55,12 @@ class HandleRequests(BaseHTTPRequestHandler):
         self._set_headers(200)
         response = None
         parsed = self.parse_url(self.path)
-        print(parsed)
         if '?' not in self.path:
-            ( resource, id, query_params ) = parsed
+            (resource, id, query_params) = parsed
             if resource == "posts":
                 if id is not None:
                     response = get_single_posts(id)
-                else: 
+                else:
                     response = get_all_posts(query_params)
             if resource == "categories":
                 response = get_all_categories()
@@ -89,17 +88,16 @@ class HandleRequests(BaseHTTPRequestHandler):
                 else:
                     response = get_all_tags()
         else:
-            ( resource, id, query_params ) = parsed
+            (resource, id, query_params) = parsed
+            print(query_params)
             if resource == "posts":
                 if query_params.get('search'):
                     response = get_post_by_search(query_params['search'][0])
-                else: 
+                else:
                     response = get_all_posts(query_params)
             if resource == "subscriptions":
                 response = get_all_subscriptions(query_params)
         self.wfile.write(json.dumps(response).encode())
-
-
 
     def do_POST(self):
         """Make a post request to the server"""
@@ -117,6 +115,8 @@ class HandleRequests(BaseHTTPRequestHandler):
             response = create_user(post_body)
         if resource == 'posts':
             response = create_post(post_body)
+        if resource == 'comments':
+            response = create_comment(post_body)
         if resource == 'categories':
             response = create_category(post_body)
         if resource == 'tags':
@@ -134,7 +134,7 @@ class HandleRequests(BaseHTTPRequestHandler):
         content_len = int(self.headers.get('content-length', 0))
         post_body = self.rfile.read(content_len)
         post_body = json.loads(post_body)
-        resource, id = self.parse_url(self.path)
+        resource, id, query_params = self.parse_url(self.path)
         success = False
         if resource == "posts":
             update_post(id, post_body)
@@ -147,10 +147,14 @@ class HandleRequests(BaseHTTPRequestHandler):
     def do_DELETE(self):
         """Handle DELETE Requests"""
         self._set_headers(204)
-        resource, id = self.parse_url(self.path)
+        resource, id, query_params = self.parse_url(self.path)
 
         if resource == "posts":
             delete_post(id)
+        if resource == "comments":
+            delete_comment(id)
+        if resource == "subscriptions":
+            delete_subscription(id)
 
 
 def main():

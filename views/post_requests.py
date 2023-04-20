@@ -13,11 +13,23 @@ def get_all_posts(query_params):
         if len(query_params) != 0:
             if query_params.get("category_id"):
                 where_clause = f"WHERE p.category_id = {query_params['category_id'][0]}"
+                
+                if query_params.get("user_id"):
+                    where_clause = f"WHERE p.user_id = {query_params['user_id'][0]}"
             if query_params.get("user_id"):
                 where_clause = f"WHERE p.user_id = {query_params['user_id'][0]}"
             if query_params.get("tag_id"):
                 where_clause = f"WHERE t.id = {query_params['tag_id'][0]}"
-
+        # cat_filter = query_params.get['category_id']
+        # if len(query_params) == 1:
+            # cat_filter ? f"WHERE p.category_id = {cat_filter[0]} : null
+            # tag_filter ? f"WHERE t.id = {tag_filter[0]} : null
+            # user_id ? f"WHERE p.user_id = {user_id[0]} : null
+        # if len(query_params) == 2:
+            # cat_filter && tag_filter 
+            # cat_filter && user_filter 
+            # user_filter && tag_filter 
+        # if len(query_params) == 3:
     sql_to_execute = f"""
         SELECT DISTINCT
             p.id,
@@ -66,7 +78,7 @@ def get_all_posts(query_params):
         for post_tag in post_tags:
             tag_object = get_single_tag(post_tag)
             post_with_tags.append(tag_object)
-        post.post_with_tags = post_with_tags
+        post.post_tags = post_with_tags
         post.user = user.__dict__
         post.category = category.__dict__
         posts.append(post.__dict__)
@@ -104,9 +116,8 @@ def get_single_posts(id):
             WHERE pt.post_id = p.id
             ) as post_tags,
             (
-            SELECT GROUP_CONCAT(a.content)
-            FROM posts p
-            JOIN  comments a ON a.post_id = p.id
+            SELECT GROUP_CONCAT(a.id)
+            FROM Comments a
             WHERE a.post_id = p.id
             ) as comments
         FROM Posts p
@@ -114,7 +125,7 @@ def get_single_posts(id):
         JOIN Categories c ON c.id = p.category_id
         LEFT OUTER JOIN PostTags pt ON pt.post_id = p.id
         LEFT OUTER JOIN Tags t ON pt.tag_id = t.id
-        LEFT OUTER JOIN Comments cm ON p.id = cm.post_id
+        LEFT OUTER JOIN Comments a ON p.id = a.post_id
         WHERE p.id = ?;
         """, (id, ))
 
@@ -134,9 +145,10 @@ def get_single_posts(id):
     comments = data['comments'].split(",") if data['comments'] else []
     post_with_comments = []
     for comment in comments:
-        post_with_comments.append(comment)
+        comment_object = get_single_comment(comment)
+        post_with_comments.append(comment_object)
     post.comments = post_with_comments
-    post.post_with_tags = post_with_tags
+    post.post_tags = post_with_tags
     post.user = user.__dict__
     post.category = category.__dict__
     
@@ -198,7 +210,6 @@ def create_post(new_post):
         VALUES
             ( ?, ?, ?, ?, ?, ?, ?);
         """, (new_post['user_id'], new_post['category_id'], new_post['title'], new_post['publication_date'], new_post['image_url'], new_post['content'], new_post['approved']))
-
         id = db_cursor.lastrowid
         new_post['id'] = id
         for tag in new_post['post_tags']:
@@ -233,7 +244,15 @@ def update_post(id, new_post):
               new_post['title'], new_post['publication_date'],
               new_post['image_url'], new_post['content'], new_post['approved'], id, ))
 
-        rows_affected = db_cursor.rowcount
+    for tag in new_post['post_tags']:
+            db_cursor.execute("""
+            Update PostTags
+                SET
+                    post_id = ?,
+                    tag_id = ?
+            WHERE  id = ?
+            """, (new_post['id'], tag, ))
+    rows_affected = db_cursor.rowcount
 
     if rows_affected == 0:
         return False
