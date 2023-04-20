@@ -169,8 +169,8 @@ SELECT DISTINCT
 
 
 
-DELETE FROM Subscriptions
-WHERE id > 2;
+DELETE FROM PostTags
+WHERE id > 5;
 
 
 SELECT DISTINCT
@@ -209,3 +209,4 @@ SELECT DISTINCT
         LEFT OUTER JOIN Tags t ON pt.tag_id = t.id
         LEFT OUTER JOIN Comments a ON p.id = a.post_id
         WHERE p.id = 1
+

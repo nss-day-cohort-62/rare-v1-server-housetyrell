@@ -15,6 +15,7 @@ class HandleRequests(BaseHTTPRequestHandler):
 
         if url_components.query != '':
             query_params = parse_qs(url_components.query)
+         
         resource = path_params[0]
         id = None
 
@@ -89,7 +90,7 @@ class HandleRequests(BaseHTTPRequestHandler):
                     response = get_all_tags()
         else:
             (resource, id, query_params) = parsed
-            print(query_params)
+            # print(query_params)
             if resource == "posts":
                 if query_params.get('search'):
                     response = get_post_by_search(query_params['search'][0])

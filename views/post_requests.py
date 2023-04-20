@@ -9,27 +9,44 @@ def get_all_posts(query_params):
         conn.row_factory = sqlite3.Row
         db_cursor = conn.cursor()
         where_clause = ""
-        print(query_params)
         if len(query_params) != 0:
             if query_params.get("category_id"):
                 where_clause = f"WHERE p.category_id = {query_params['category_id'][0]}"
-                
-                if query_params.get("user_id"):
-                    where_clause = f"WHERE p.user_id = {query_params['user_id'][0]}"
             if query_params.get("user_id"):
                 where_clause = f"WHERE p.user_id = {query_params['user_id'][0]}"
             if query_params.get("tag_id"):
                 where_clause = f"WHERE t.id = {query_params['tag_id'][0]}"
-        # cat_filter = query_params.get['category_id']
+        # cat_filter = 0
+        # user_filter = 0
+        # tag_filter = 0
+        # # print(query_params)
+        # if len(query_params['category_id']):
+        #     cat_filter = int(query_params['category_id'])
+        # if int(query_params['user_id']) is not None:
+        #     user_filter = int(query_params['user_id'])
+        # if int(query_params['tag_id']) is not None:
+        #     tag_filter = int(query_params['tag_id'])
+        # print(user_filter)
         # if len(query_params) == 1:
-            # cat_filter ? f"WHERE p.category_id = {cat_filter[0]} : null
-            # tag_filter ? f"WHERE t.id = {tag_filter[0]} : null
-            # user_id ? f"WHERE p.user_id = {user_id[0]} : null
+        #     if (cat_filter != 0):  
+        #         where_clause = f"WHERE p.category_id = {cat_filter}"
+        #     elif(tag_filter != 0):
+        #         where_clause = f"WHERE t.id = {tag_filter}"
+        #     if(user_filter != 0):
+        #         where_clause = f"WHERE p.user_id = {user_filter}"
+        #     else:
+        #         pass
         # if len(query_params) == 2:
-            # cat_filter && tag_filter 
-            # cat_filter && user_filter 
-            # user_filter && tag_filter 
+        #     if (cat_filter != 0 and tag_filter != 0):
+        #         where_clause = f"WHERE p.category_id = {cat_filter} AND t.id = {tag_filter}"
+        #     elif (cat_filter != 0 and user_filter != 0):
+        #         where_clause = f"WHERE p.category_id = {cat_filter} AND p.user_id = {user_filter}"
+        #     elif (user_filter != 0 and tag_filter != 0):
+        #         where_clause = f"WHERE p.user_id = {user_filter} AND t.id = {tag_filter}"
+        #     else:
+        #         pass
         # if len(query_params) == 3:
+        #     where_clause = f"WHERE p.user_id = {user_filter} AND t.id = {tag_filter} AND p.category_id = {cat_filter}"
     sql_to_execute = f"""
         SELECT DISTINCT
             p.id,
@@ -212,6 +229,7 @@ def create_post(new_post):
         """, (new_post['user_id'], new_post['category_id'], new_post['title'], new_post['publication_date'], new_post['image_url'], new_post['content'], new_post['approved']))
         id = db_cursor.lastrowid
         new_post['id'] = id
+        print(new_post['post_tags'])
         for tag in new_post['post_tags']:
             db_cursor.execute("""
             INSERT INTO PostTags
@@ -245,6 +263,7 @@ def update_post(id, new_post):
               new_post['image_url'], new_post['content'], new_post['approved'], id, ))
 
     for tag in new_post['post_tags']:
+           # Delete
             db_cursor.execute("""
             Update PostTags
                 SET
