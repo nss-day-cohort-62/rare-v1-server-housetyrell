@@ -242,12 +242,11 @@ def update_post(id, new_post):
         """, (new_post['user_id'], new_post['category_id'],
               new_post['title'], new_post['publication_date'],
               new_post['image_url'], new_post['content'], new_post['approved'], id, ))
-# NOT DEFINING NEW_POST['ID'] ON LINE 250
         for tag in new_post['post_tags']:
             db_cursor.execute("""
-                DELETE FROM PostTags pt
-                WHERE pt.post_id = ?;
-                """, (new_post['id'], ))
+                DELETE FROM PostTags
+                WHERE post_id = ?;
+                """, (id, ))
         for tag in new_post['post_tags']:
             db_cursor.execute("""
                 INSERT INTO PostTags
