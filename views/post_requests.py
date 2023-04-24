@@ -238,23 +238,23 @@ def update_post(id, new_post):
                 image_url = ?,
                 content = ?,
                 approved = ?
-        WHERE id = ?
+        WHERE id = ?;
         """, (new_post['user_id'], new_post['category_id'],
               new_post['title'], new_post['publication_date'],
               new_post['image_url'], new_post['content'], new_post['approved'], id, ))
-
-    for tag in new_post['post_tags']:
+# NOT DEFINING NEW_POST['ID'] ON LINE 250
+        for tag in new_post['post_tags']:
             db_cursor.execute("""
-                DELETE FROM PostTags
-                WHERE id = ?
-                """, (tag, ))
-
+                DELETE FROM PostTags pt
+                WHERE pt.post_id = ?;
+                """, (new_post['id'], ))
+        for tag in new_post['post_tags']:
             db_cursor.execute("""
-             INSERT INTO PostTags
-                (post_id, tag_id)
-            VALUES
-                (?, ?)
-            """, (new_post['id'], tag, ))
+                INSERT INTO PostTags
+                    (post_id, tag_id)
+                VALUES
+                    (?, ?);
+                """, (new_post['id'], tag))
     rows_affected = db_cursor.rowcount
 
     if rows_affected == 0:
